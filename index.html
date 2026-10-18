@@ -1,0 +1,443 @@
+<!doctype html>
+<html lang="zh-Hant-HK">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#07151a" />
+  <title>Trail Intel — 山賽配速策略分析</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <style>
+    :root{color-scheme:dark;--bg:#07151a;--panel:#102229;--panel2:#162d34;--line:#294149;--muted:#95adb2;--ink:#f2faf7;--lime:#d1fa78;--mint:#62e7c0;--orange:#ffbd6a;--red:#ff817b;--blue:#80b7ff}
+    *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(ellipse 80% 50% at 75% 0%,#193b36 0,transparent 65%),var(--bg);font-family:Inter,-apple-system,BlinkMacSystemFont,"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;color:var(--ink);line-height:1.55}
+    button,input,select{font:inherit}button{cursor:pointer}a{color:var(--mint)}.wrap{width:min(1220px,calc(100% - 36px));margin:0 auto}
+    header{padding:23px 0;border-bottom:1px solid #23404880}.nav{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font-size:18px;letter-spacing:.035em;font-weight:900}.brand b{color:var(--lime)}.tag{border:1px solid #426058;background:#15332d;color:#a7eccc;border-radius:20px;padding:6px 11px;font-size:12px}
+    .hero{padding:42px 0 26px;display:grid;grid-template-columns:1.15fr .85fr;gap:30px;align-items:center}.eyebrow{font-size:12px;letter-spacing:2.4px;color:var(--lime);font-weight:800}.hero h1{font-size:clamp(30px,4.5vw,57px);line-height:1.16;letter-spacing:-1.7px;margin:13px 0 16px}.hero h1 em{font-style:normal;color:var(--lime)}.hero p{font-size:15px;color:#afc4c4;max-width:630px}.hero-art{border:1px solid #36534a;border-radius:22px;padding:23px;background:linear-gradient(145deg,#173c37,#10242b);min-height:195px;position:relative;overflow:hidden}.hero-art svg{width:100%;height:150px}.hero-art-caption{display:flex;justify-content:space-between;color:#abd0bd;font-size:12px;letter-spacing:.12em}
+    .card{background:linear-gradient(180deg,#12272d,#0e2228);border:1px solid var(--line);border-radius:18px;padding:21px}.setup{display:grid;grid-template-columns:.85fr 1.15fr;gap:16px;margin:16px 0 25px}.section-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:17px}.section-head h2,.card h2{font-size:17px;margin:0;letter-spacing:-.2px}.subtext{color:var(--muted);font-size:12px}.upload{border:1.5px dashed #69846e;border-radius:14px;padding:30px 15px;text-align:center;background:#15302b80;transition:.2s}.upload.over{background:#245648;border-color:var(--lime)}.upload .u-icon{font-size:35px;line-height:1}.upload p{margin:8px 0 16px;font-size:13px;color:#bcd2ce}.btn{border:none;background:var(--lime);border-radius:10px;padding:10px 15px;font-size:13px;font-weight:800;color:#11251d;transition:transform .15s}.btn:hover{transform:translateY(-1px)}.btn.ghost{border:1px solid #4c6c67;background:#1d393a;color:#e2f3eb}.actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}.filename{margin-top:15px;color:var(--mint);font-size:12px;overflow-wrap:anywhere}.tip{font-size:12px;color:#a9c0c3;margin:14px 0 0}.grid-inputs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.field label{display:block;font-size:12px;color:#c8d7d7;margin-bottom:7px}.field input,.field select{color:var(--ink);background:#0a1c23;border:1px solid #37535b;border-radius:10px;padding:11px 10px;width:100%;outline:none}.field input:focus,.field select:focus{border-color:var(--lime)}.hint{font-size:11px;color:#87a5a9;margin-top:5px}
+    .gap-banner{margin:0 0 17px;padding:16px 19px;border-radius:13px;background:#392928;border:1px solid #bd7360;color:#ffe1d2}.gap-banner strong{display:block;font-size:15px}.gap-banner p{margin:5px 0 7px;font-size:12px}.gap-banner ol{font-size:12px;margin:8px 0 0;padding-left:19px;max-height:180px;overflow:auto}.gap-banner li{margin:5px 0}.gap-row td{background:#432e2c!important;color:#ffd6bb!important;white-space:normal!important;font-weight:700}.error{padding:13px 17px;border:1px solid #8a4545;color:#ffd3d2;background:#482225;border-radius:12px;margin:13px 0}.hidden{display:none!important}.metrics{display:grid;grid-template-columns:repeat(5,1fr);gap:13px;margin:20px 0}.metric{min-width:0;background:#12272c;border:1px solid #2c4750;border-radius:15px;padding:18px}.metric small{display:block;font-size:12px;color:#9eb5b8}.metric strong{display:block;font-size:clamp(22px,2.4vw,32px);line-height:1.35;margin:5px 0;color:#f5fff8;white-space:nowrap}.metric strong.primary{color:var(--lime)}.metric span{color:#82a1a4;font-size:11px}
+    .two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.viz{width:100%;display:block;overflow:visible}.route-box{display:flex;align-items:center;justify-content:center;background:#081b20;border:1px solid #254047;border-radius:13px;min-height:310px}.route-box svg{width:100%;height:300px}.profile-box{border:1px solid #254047;border-radius:13px;background:#081b20;overflow:hidden}.profile-box svg{width:100%;display:block}.legend{display:flex;gap:13px;flex-wrap:wrap;margin-top:14px;color:#bacdcc;font-size:11px}.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+    .insights{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.alert-list{display:flex;flex-direction:column;gap:8px}.alert{border:1px solid #3d5358;padding:12px;border-radius:11px;display:flex;gap:12px;align-items:flex-start;background:#142b30}.alert .pill{white-space:nowrap;border-radius:7px;background:#58392b;color:#ffcf91;font-size:11px;padding:4px 7px;font-weight:800}.alert p{margin:2px 0;font-size:12px;color:#bfd0d2}.alert b{font-size:13px}.alert button{margin-left:auto;background:none;border:0;color:var(--mint);font-size:12px;white-space:nowrap;padding:5px}.alert.warning .pill{background:#552b2e;color:#ffa39f}.muscle{display:flex;flex-direction:column;gap:10px;margin:15px 0}.muscle-row{display:grid;grid-template-columns:94px 1fr 27px;gap:10px;align-items:center;font-size:12px}.bar{height:8px;border-radius:8px;background:#223e46;overflow:hidden}.bar-fill{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--mint),var(--lime))}.micro{color:#9eb4b9;font-size:12px}
+    .table-wrap{overflow:auto;border:1px solid #29444c;border-radius:13px}.segments-table{width:100%;border-collapse:collapse;white-space:nowrap;font-size:12px}.segments-table th{font-weight:700;text-align:left;color:#9bb8bd;background:#0b2026;padding:11px 13px;position:sticky;top:0}.segments-table td{border-top:1px solid #28454c;padding:12px 13px}.segments-table tbody tr{cursor:pointer}.segments-table tbody tr:hover,.segments-table tbody tr.active{background:#21423d}.segments-table td:last-child{min-width:240px;max-width:350px;white-space:normal}.terrain-label{font-weight:700;border-radius:7px;padding:4px 7px;display:inline-block}.terrain-label.climb{color:#ffcd83;background:#553a27}.terrain-label.desc{color:#ffaaa0;background:#4b3037}.terrain-label.flat{color:#b4ead4;background:#244138}
+    .strategy-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.strategy{padding:17px;background:#0b2228;border:1px solid #2e484e;border-radius:12px}.strategy small{color:var(--lime);font-size:11px;font-weight:800}.strategy h3{font-size:15px;margin:8px 0}.strategy p{font-size:12px;color:#b5c9ca;margin:0}.summary-text{color:#c3d6d3;font-size:13px;margin:13px 0}.notice{border-left:3px solid var(--orange);padding:10px 13px;color:#baceca;background:#1b2c2c;font-size:12px;margin:20px 0;border-radius:4px}.foot{border-top:1px solid #2b4848;padding:20px 0 40px;margin-top:18px;color:#8fa8ab;font-size:11px}.selectable{cursor:pointer}.note-chip{border:1px solid #3c5b5e;border-radius:9px;background:#183034;padding:6px 11px;color:#c7dbdb;font-size:12px}.print-only{display:none}
+    @media(max-width:900px){.hero{grid-template-columns:1fr}.hero-art{display:none}.setup,.two,.insights{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(3,1fr)}}@media(max-width:580px){.wrap{width:calc(100% - 24px)}.hero{padding:28px 0 15px}.hero h1{font-size:34px;letter-spacing:-1px}.metrics{grid-template-columns:repeat(2,1fr)}.metric{padding:12px}.metric strong{font-size:23px}.card{padding:15px}.grid-inputs{gap:9px}.strategy-grid{grid-template-columns:1fr}.muscle-row{grid-template-columns:80px 1fr 27px}.tag{font-size:10px}.upload{padding:22px 12px}}@media print{body{background:white!important;color:#111}.hero-art,.setup,.actions,.btn,.nav .tag,.foot{display:none!important}.card,.metric{background:white;color:#111;border:1px solid #aaa}.card h2,.metric strong{color:#111!important}.subtext,.micro,.summary-text{color:#333}.segments-table{color:#111;white-space:normal}.segments-table td,.segments-table th{color:#111}.print-only{display:block}}
+    #terrainMap{height:360px;border-radius:13px;background:#081b20}.feature-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin:16px 0}.feature-grid .card{min-width:0}.wide{grid-column:1/-1}.feature-table{width:100%;min-width:620px;border-collapse:collapse;font-size:12px}.feature-table th,.feature-table td{padding:8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.feature-table input,.feature-table select{max-width:180px;width:100%;color:var(--ink);background:#0a1c23;border:1px solid #37535b;border-radius:6px;padding:7px}.feature-table input[type=number]{max-width:100px}.feature-table button{white-space:nowrap}.feature-table td:last-child{white-space:normal}.status{font-size:12px;color:var(--mint);margin:9px 0;white-space:pre-wrap}.stack{display:flex;gap:9px;flex-wrap:wrap;align-items:end}.stack .field{flex:1;min-width:140px}.leaflet-container{font-family:inherit}@media(max-width:800px){.feature-grid{grid-template-columns:1fr}.wide{grid-column:auto}}@media print{#terrainMap,.feature-grid button,.feature-grid input,.feature-grid select{display:none!important}}
+  </style>
+</head>
+<body>
+<header><div class="wrap nav"><div class="brand">▲ TRAIL<b>INTEL</b> <span style="font-size:11px;color:#91b3a9;font-weight:500">/ PACE LAB</span></div><span class="tag">GPX 本機分析 · 地圖／天氣另向供應商請求</span></div></header>
+<main class="wrap">
+  <section class="hero">
+    <div><div class="eyebrow">TRAIL RACE INTELLIGENCE · 原型版</div><h1>讀懂每一段山路。<br><em>跑出你嘅節奏。</em></h1><p>匯入賽事 GPX，拆解爬升、下降、坡度、肌肉負荷、分段配速同關鍵路段；再加入歷史活動、CP 同賽日天氣，製作比賽部署。GPX 本機分析，唔使帳號。</p></div>
+    <div class="hero-art" aria-hidden="true"><div class="hero-art-caption"><span>COURSE / INTELLIGENCE</span><span>▲ ELEVATION</span></div><svg viewBox="0 0 470 160"><defs><linearGradient id="heroFill" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#d1fa78" stop-opacity=".4"/><stop offset="1" stop-color="#d1fa78" stop-opacity=".01"/></linearGradient></defs><path d="M0 134 L55 120 90 94 135 116 183 37 204 49 255 25 288 68 322 45 363 109 395 100 431 143 470 127 V160 H0 Z" fill="url(#heroFill)"/><path d="M0 134 L55 120 90 94 135 116 183 37 204 49 255 25 288 68 322 45 363 109 395 100 431 143 470 127" fill="none" stroke="#d1fa78" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><circle cx="255" cy="25" r="6" fill="#d1fa78" stroke="#0d2224" stroke-width="4"/></svg><div class="hero-art-caption"><span>GRADE-AWARE</span><span>SEGMENT PACING</span></div></div>
+  </section>
+  <section class="setup">
+    <div class="card"><div class="section-head"><h2>01 / 上載賽道 GPX</h2><span class="subtext">支援 .gpx</span></div>
+      <div class="upload" id="uploadZone"><div class="u-icon">♧</div><strong>拖放 GPX 到呢度</strong><p>或使用下面按鈕揀檔案</p><div class="actions"><button type="button" class="btn" id="chooseBtn">選擇 GPX 檔案</button><button type="button" class="btn ghost" id="demoBtn">試用模擬賽道</button></div><input type="file" id="gpxFile" accept=".gpx,application/gpx+xml,application/xml,text/xml" hidden /></div>
+      <div class="filename" id="filename">尚未載入賽道</div><p class="tip">支援 track / route GPX；需要包含海拔 &lt;ele&gt;。示範路線純屬模擬，唔係真實山徑。</p>
+    </div>
+    <div class="card"><div class="section-head"><h2>02 / 個人跑力設定</h2><span class="subtext">改數值即時重新估算</span></div>
+      <div class="grid-inputs">
+        <div class="field"><label for="flatPace">平緩山路配速（分鐘／km）</label><input id="flatPace" type="number" value="7" min="3" max="25" step="0.25"/><div class="hint">例：7.5 即 7:30/km，唔係馬路配速</div></div>
+        <div class="field"><label for="vam">陡坡 Power Hike 爬升能力</label><select id="vam"><option value="350">350 m/h — 保守</option><option value="500" selected>500 m/h — 一般</option><option value="700">700 m/h — 熟練</option><option value="900">900 m/h — 強</option></select><div class="hint">每小時垂直上升米數（VAM）</div></div>
+        <div class="field"><label for="effort">比賽策略</label><select id="effort"><option value="1.12">保守完賽</option><option value="1" selected>均衡配速</option><option value="0.93">積極配速</option></select></div>
+        <div class="field"><label for="downhill">落斜技術</label><select id="downhill"><option value="1.18">初階：慢落更安全</option><option value="1" selected>一般</option><option value="0.90">熟練</option></select></div>
+        <div class="field"><label for="segmentSize">分段距離</label><select id="segmentSize"><option value="250">每 250 m</option><option value="500" selected>每 500 m</option><option value="1000">每 1 km</option><option value="2000">每 2 km</option></select></div>
+        <div class="field"><label for="stops">預留補給／停留總時間（分鐘）</label><input id="stops" type="number" min="0" max="600" step="1" value="10"/></div>
+      </div>
+    </div>
+  </section>
+  <section class="feature-grid" aria-label="進階賽事設定">
+    <div class="card"><div class="section-head"><h2>03 / 歷史活動校準</h2><span class="subtext">本機運算</span></div><input id="historyFile" type="file" accept=".gpx" multiple /><p class="tip">揀過往有時間與海拔嘅跑山 GPX。只用有效移動片段估計上、落坡倍率；停錶、GPS 異常會剔除。</p><div id="calibrationStatus" class="status">未校準，使用手動配速。</div><button class="btn ghost" id="clearCalibration" type="button">清除校準</button></div>
+    <div class="card"><div class="section-head"><h2>04 / 比賽日期及起跑</h2><span class="subtext">香港時間</span></div><div class="stack"><div class="field"><label for="raceStart">起跑日期時間</label><input id="raceStart" type="datetime-local" /></div><div class="field"><label for="weatherBtn">天氣與日照</label><button class="btn ghost" id="weatherBtn" type="button">讀取賽日預報</button></div></div><div id="weatherStatus" class="status">輸入賽日後可查預報；超出預報期只顯示未知。</div><p class="tip">Open-Meteo 模型預報為路線起點附近網格值，唔係山脊微氣候或官方警告。</p></div>
+  </section>
+  <div id="error" class="error hidden" role="alert"></div>
+  <div id="results" class="hidden">
+    <div class="section-head" style="margin-top:22px"><div><h2 style="font-size:22px;margin:0">賽道分析報告</h2><span class="subtext" id="courseLabel"></span></div><div class="actions"><button type="button" id="csvBtn" class="btn ghost">↓ 匯出分段 CSV</button><button type="button" class="btn ghost" id="printBtn">列印報告</button></div></div>
+    <div id="gapNotice" class="gap-banner hidden" role="alert"></div>
+    <div class="metrics">
+      <div class="metric"><small id="distanceLabel">總距離</small><strong class="primary" id="metricDistance">–</strong><span id="metricDistanceNote">GPS 線段累加</span></div>
+      <div class="metric"><small>累積爬升</small><strong id="metricAscent">–</strong><span>平滑海拔計算</span></div>
+      <div class="metric"><small>累積下降</small><strong id="metricDescent">–</strong><span>平滑海拔計算</span></div>
+      <div class="metric"><small id="timeLabel">預估總時間</small><strong class="primary" id="metricTime">–</strong><span id="metricTimeDetail">含預留停留時間</span></div>
+      <div class="metric"><small>最高海拔</small><strong id="metricPeak">–</strong><span id="metricGrade">最陡 100m 坡度 –</span></div>
+    </div>
+    <div class="two">
+      <section class="card"><div class="section-head"><h2>賽道走線</h2><span class="subtext">依地形分類著色 · 點擊線段</span></div><div class="route-box" id="routeBox"></div><div class="legend"><span><i style="background:#62e7c0"></i>平緩 / 起伏</span><span><i style="background:#ffbd6a"></i>爬升</span><span><i style="background:#ff817b"></i>下降</span><span><i style="background:#d1fa78"></i>已選取</span></div><div class="tip">此圖只顯示 GPX 路線形狀，並非有山徑路面資訊嘅地圖。</div></section>
+      <section class="card"><div class="section-head"><h2>海拔剖面</h2><span class="subtext">距離 × 海拔 · 點擊分段</span></div><div class="profile-box" id="profileBox"></div><div class="summary-text" id="profileSummary"></div><div class="tip" id="qualityNote"></div></section>
+    </div>
+    <section class="card" style="margin-bottom:16px"><div class="section-head"><h2>地形地圖</h2><span class="subtext">可縮放 · 路段與 CP 標記</span></div><div class="stack"><div class="field"><label for="mapStyle">底圖</label><select id="mapStyle"><option value="topo">OpenTopoMap 地形陰影（SRTM）</option><option value="osm">OpenStreetMap 街道</option></select></div></div><div id="terrainMap" role="img" aria-label="可互動賽道地形地圖"></div><div id="mapStatus" class="status"></div><p class="tip">海拔剖面使用 GPX &lt;ele&gt;，地圖陰影源自 OpenTopoMap 的 SRTM；兩者精度與基準可能不同。地圖圖磚只按畫面載入，禁止批量下載。<a href="https://wiki.opentopomap.org/about" target="_blank" rel="noopener">地圖授權</a> · <a href="https://operations.osmfoundation.org/policies/tiles/" target="_blank" rel="noopener">OSM 圖磚規則</a></p></section>
+    <section class="feature-grid" aria-label="賽事資料">
+      <div class="card wide"><div class="section-head"><h2>補給站與 cut-off</h2><span class="subtext">按已知路段移動時間及停留計算</span></div><div class="stack"><button type="button" class="btn ghost" id="addCp">＋ 新增 CP</button><span class="micro">距離由起點沿 GPX 累計；請以官方路書核實。</span></div><div class="table-wrap"><table class="feature-table"><thead><tr><th>CP</th><th>距離 km</th><th>必到時間</th><th>站內停留 分</th><th>補給 / 官方來源</th><th></th></tr></thead><tbody id="cpEditor"></tbody></table></div><div id="cpResult" class="status">未輸入 CP。</div></div>
+      <div class="card"><div class="section-head"><h2>實際路況註記</h2><span class="subtext">與坡度推斷分開</span></div><div class="stack"><button type="button" class="btn ghost" id="addNote">＋ 人工／官方註記</button><button type="button" class="btn ghost" id="osmTags">讀取附近 OSM tags</button></div><div id="noteStatus" class="status">只採用具來源嘅路況註記；OSM tag 未經賽事官方核實。</div><div class="table-wrap"><table class="feature-table"><thead><tr><th>來源</th><th>位置 km</th><th>內容</th><th>連結</th><th></th></tr></thead><tbody id="noteEditor"></tbody></table></div></div>
+    </section>
+    <div class="insights">
+      <section class="card"><div class="section-head"><h2>值得注意嘅位置</h2><span class="subtext">坡度推斷風險，非實際路況</span></div><div id="alerts" class="alert-list"></div></section>
+      <section class="card"><div class="section-head"><h2>肌肉負荷參考</h2><span class="subtext">按分段選取更新</span></div><div id="selectedDescription" style="font-size:13px;color:var(--lime)">未選擇路段</div><div class="muscle" id="muscleBars"></div><div class="micro" id="muscleAdvice"></div><p class="tip">百分比係「相對負荷提示」，唔係實測肌電數據；個人體能、跑姿、裝備同地面會改變結果。</p></section>
+    </div>
+    <section class="card" style="margin-bottom:16px"><div class="section-head"><h2>逐段配速同操作建議</h2><span class="subtext">點擊任何一行，連動路線、海拔同肌肉提醒</span></div><div class="table-wrap"><table class="segments-table"><thead><tr><th>距離區間</th><th>爬升 / 下降</th><th>平均坡度</th><th>地形</th><th>建議動作</th><th>估算配速</th><th>段時間</th><th>累積時間*</th><th>要注意</th></tr></thead><tbody id="segmentsBody"></tbody></table></div><p class="tip">* 累積時間為移動時間，未包括另設停留時間；配速為坡度及設定推算，非實測預測。</p></section>
+    <section class="card"><div class="section-head"><h2>比賽部署</h2><span class="subtext">前、中、後段分配體力</span></div><div class="strategy-grid" id="strategies"></div><p class="summary-text" id="nutrition"></p><div class="notice">重要：GPX 唔能夠判斷碎石、樓梯、密林、濕滑、日照、封路或補給站位置。賽前必須核對官方賽道資訊、天氣及 cut-off；肌肉與補給提示屬一般運動資訊，個人需要差異好大。</div></section>
+  </div>
+</main>
+<footer class="wrap foot">TRAILINTEL / PACE LAB · GPX 與個人校準喺瀏覽器記憶體運算；使用地圖、OSM tags 或天氣功能會向第三方傳送地圖區域／座標。<br/>配速屬啟發式估算，校準資料亦受 GPS、停錶與路面狀況影響。正式部署前請核對各供應商條款及賽事官方資料。</footer>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+<script>
+(()=>{'use strict';
+const $=id=>document.getElementById(id);let baseRoute=null,analysis=null,segments=[],selected=0,loadedName='';
+let calibration={up:1,down:1,upSlope:0,downSlope:0,upCount:0,downCount:0},map=null,mapBase=null,mapBaseStyle='',mapRouteRef=null,mapRoutes=[],mapMarkers=[],weather=null,osmNotes=[];
+const colors={climb:'#ffbd6a',desc:'#ff817b',flat:'#62e7c0'};
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
+const fmt=(n,d=1)=>Number.isFinite(n)?n.toFixed(d):'–';
+const km=m=>`${fmt(m/1000,2)} km`;
+const fmtTime=min=>{if(!Number.isFinite(min))return'–';let total=Math.round(min),h=Math.floor(total/60),m=total%60;return h?`${h}小時 ${String(m).padStart(2,'0')}分`:`${m}分`;};
+const fmtPace=min=>{if(!Number.isFinite(min))return'–';let s=Math.round(min*60);return `${Math.floor(s/60)}:${String(s%60).padStart(2,'0')}/km`;};
+const rad=d=>d*Math.PI/180;
+function hav(a,b){const R=6371000,dLat=rad(b.lat-a.lat),dLon=rad(b.lon-a.lon);const q=Math.sin(dLat/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dLon/2)**2;return 2*R*Math.asin(Math.sqrt(clamp(q,0,1)));}
+function showError(message){$('error').textContent=message;$('error').classList.remove('hidden');}
+function clearError(){$('error').classList.add('hidden');}
+function xmlNodeText(el,tag){const tags=el.getElementsByTagNameNS('*',tag);return tags.length?tags[0].textContent:null;}
+function parseGpx(xml){
+ const dom=new DOMParser().parseFromString(xml,'application/xml');
+ if(dom.getElementsByTagName('parsererror').length)throw new Error('GPX XML 格式錯誤，請重新匯出檔案。');
+ const direct=(node,name)=>Array.from(node.children||[]).filter(child=>child.localName===name);
+ const groups=[];
+ for(const trk of Array.from(dom.getElementsByTagNameNS('*','trk'))){
+  for(const seg of direct(trk,'trkseg')){const nodes=direct(seg,'trkpt');if(nodes.length)groups.push(nodes);}
+ }
+ if(!groups.length)for(const rte of Array.from(dom.getElementsByTagNameNS('*','rte'))){const nodes=direct(rte,'rtept');if(nodes.length)groups.push(nodes);}
+ const nodeCount=groups.reduce((n,g)=>n+g.length,0);
+ if(nodeCount<2)throw new Error('檔案內搵唔到完整 GPX 路線點（trkpt / rtept）。');
+ if(nodeCount>180000)throw new Error('GPX 路線點過多（超過 180,000），請先簡化路線。');
+ const rawParts=[];let chunk=[],pendingBreak=null,jumpCount=0,invalidCount=0;
+ function flush(){if(chunk.length){rawParts.push({points:chunk,breakBefore:pendingBreak});chunk=[];pendingBreak=null;}}
+ function breakAt(reason){flush();pendingBreak=reason;}
+ groups.forEach((nodes,gi)=>{
+  if(gi>0)breakAt('trkseg');
+  for(const n of nodes){
+   const latText=n.getAttribute('lat'),lonText=n.getAttribute('lon');
+   const lat=latText===null?NaN:Number(latText),lon=lonText===null?NaN:Number(lonText);
+   if(!Number.isFinite(lat)||!Number.isFinite(lon)||Math.abs(lat)>90||Math.abs(lon)>180){invalidCount++;breakAt('invalid');continue;}
+   const e=xmlNodeText(n,'ele'),ele=e===null||!e.trim()?null:Number(e);
+   if(ele!==null&&!Number.isFinite(ele)){invalidCount++;breakAt('invalid');continue;}
+   const stamp=xmlNodeText(n,'time'),time=stamp?Date.parse(stamp):NaN;
+   const point={lat,lon,ele,time:Number.isFinite(time)?time:null};
+   if(chunk.length){
+    const delta=hav(chunk.at(-1),point);
+    if(delta<.8)continue;
+    if(delta>2000){jumpCount++;breakAt('jump');}
+   }
+   chunk.push(point);
+  }
+ });
+ flush();
+ const parts=rawParts.filter(c=>c.points.length>=2);
+ const dropped=rawParts.length-parts.length;
+ if(!parts.length)throw new Error('GPX 路線點中斷太多，冇足夠嘅連續軌跡可以分析。');
+ let rawCount=0,known=0;
+ for(const part of parts){
+  const pts=part.points;rawCount+=pts.length;
+  const count=pts.filter(p=>p.ele!==null).length;known+=count;
+  if(!count)throw new Error('其中一段連續軌跡完全冇海拔 <ele>；為免錯誤推算坡度，請先補全 GPX。');
+  let last=-1;
+  for(let i=0;i<pts.length;i++)if(pts[i].ele!==null){
+   if(last===-1){for(let j=0;j<i;j++)pts[j].ele=pts[i].ele;}
+   else if(last<i-1){for(let j=last+1;j<i;j++){const t=(j-last)/(i-last);pts[j].ele=pts[last].ele+(pts[i].ele-pts[last].ele)*t;}}
+   last=i;
+  }
+  for(let j=last+1;j<pts.length;j++)pts[j].ele=pts[last].ele;
+ }
+ if(known/rawCount<.80)throw new Error('超過 20% 連續軌跡點缺少海拔，坡度分析唔可靠。請補全 GPX 海拔資料。');
+ const gaps=[];
+ for(let i=1;i<parts.length;i++){
+  const before=parts[i-1],after=parts[i],from=before.points.at(-1),to=after.points[0];
+  const meters=hav(from,to);
+  const left=rawParts.indexOf(before),right=rawParts.indexOf(after);
+  const reasons=rawParts.slice(left+1,right+1).map(p=>p.breakBefore);
+  const reason=meters>2000||reasons.includes('jump')?'jump':reasons.includes('invalid')?'invalid':'boundary';
+  gaps.push({afterPiece:i-1,beforePiece:i,meters,from,to,reason});
+ }
+ const names=dom.getElementsByTagNameNS('*','name');let courseName='GPX 路線';if(names.length)courseName=(names[0].textContent||courseName).trim().slice(0,100);
+ return {parts,gaps,courseName,quality:`${fmt(known/rawCount*100,1)}% 點有原始海拔`,jumpCount,dropped,invalidCount};
+}
+function prep(data){
+ const sample=[],pieces=[];let distance=0,gain=0,loss=0,peak=-Infinity,minEle=Infinity,maxGrade=-Infinity,minGrade=Infinity;
+ const step=25;
+ for(let id=0;id<data.parts.length;id++){
+  const raw=data.parts[id].points;raw[0].localD=0;let length=0;
+  for(let i=1;i<raw.length;i++){length+=hav(raw[i-1],raw[i]);raw[i].localD=length;}
+  if(length<=0)continue;
+  const first=sample.length,count=Math.ceil(length/step);let j=0;
+  for(let i=0;i<=count;i++){
+   const localD=Math.min(i*step,length);
+   while(j<raw.length-2&&raw[j+1].localD<localD)j++;
+   const a=raw[j],b=raw[j+1],t=clamp((localD-a.localD)/(b.localD-a.localD),0,1);
+   sample.push({d:distance+localD,localD,pieceId:id,lat:a.lat+(b.lat-a.lat)*t,lon:a.lon+(b.lon-a.lon)*t,ele:a.ele+(b.ele-a.ele)*t,time:Number.isFinite(a.time)&&Number.isFinite(b.time)?a.time+(b.time-a.time)*t:null});
+  }
+  const last=sample.length-1;
+  // Each independent GPX section is smoothed and graded by itself.
+  for(let i=first;i<=last;i++){
+   let sum=0,n=0;for(let k=Math.max(first,i-3);k<=Math.min(last,i+3);k++){sum+=sample[k].ele;n++;}
+   sample[i].smooth=sum/n;
+  }
+  for(let i=first;i<=last;i++){
+   const q=sample[i];peak=Math.max(peak,q.smooth);minEle=Math.min(minEle,q.smooth);
+   const a=sample[Math.max(first,i-2)],b=sample[Math.min(last,i+2)];
+   q.grade=b.d===a.d?0:(b.smooth-a.smooth)/(b.d-a.d)*100;
+   maxGrade=Math.max(maxGrade,q.grade);minGrade=Math.min(minGrade,q.grade);
+   if(i>first){const change=q.smooth-sample[i-1].smooth;if(change>0)gain+=change;else loss-=change;}
+  }
+  pieces.push({id,first,last,start:distance,end:distance+length});distance+=length;
+ }
+ if(distance<100)throw new Error('可用連續軌跡合計不足 100 米，未能進行有效山賽分析。');
+ const gaps=data.gaps.map(g=>({...g,atDistance:pieces[g.afterPiece]?.end||0}));
+ return {...data,pieces,gaps,sample,distance,gain,loss,peak,minEle,maxGrade,minGrade};
+}
+function paceFor(grade,progress,settings){
+ const g=clamp(grade,-45,45),a=Math.abs(g);
+ let factor;
+ if(g>=0){factor=1+.035*g+.0014*g*g;}
+ else{factor=Math.max(.80,1-.023*a+.0018*a*a)*settings.downhill;}
+ let pace=settings.flatPace*factor;
+ // At steep gradients walking pace is constrained by vertical ascent ability.
+ if(g>=14){const hikePace=(g/100)*1000*60/settings.vam;pace=Math.max(pace,hikePace);}
+ if(g>=3)pace*=calibration.up*Math.exp(calibration.upSlope*(g-10));
+ if(g<=-3)pace*=calibration.down*Math.exp(calibration.downSlope*(a-10));
+ const fatigue=1+.10*Math.pow(progress,1.7);
+ return clamp(pace*settings.effort*fatigue,settings.flatPace*.64,settings.flatPace*9);
+}
+function classify(s){
+ const steepUp=s.grades.filter(g=>g>=12).length/s.grades.length;
+ const steepDown=s.grades.filter(g=>g<=-12).length/s.grades.length;
+ if(s.grade>=8||(s.grade>=3&&steepUp>.2))return {id:'climb',label:'陡上坡',action:'Power Hike／短步上行',muscle:'up'};
+ if(s.grade>=3)return {id:'climb',label:'上坡',action:'縮短步幅、控心率',muscle:'up'};
+ if(s.grade<=-8||(s.grade<=-3&&steepDown>.2))return {id:'desc',label:'急下坡',action:'短步高步頻、控煞車',muscle:'down'};
+ if(s.grade<=-3)return {id:'desc',label:'下坡',action:'保持腳步靈活',muscle:'down'};
+ if(s.gain>25&&s.loss>25)return {id:'flat',label:'連續起伏',action:'上行收力、平緩回復',muscle:'rolling'};
+ return {id:'flat',label:'平緩',action:'穩定節奏、自然呼吸',muscle:'flat'};
+}
+function detailFor(s){
+ const msg=[];
+ if(s.maxGrade>=18)msg.push('出現陡上坡，必要時轉快行');
+ if(s.minGrade<=-18)msg.push('出現陡下坡，減速保護股四頭肌');
+ if(s.grade>=10)msg.push('長上坡以呼吸強度控制');
+ if(s.grade<=-10)msg.push('避免大步跨落及過度煞車');
+ if(s.grade>3&&s.start>0&&s.start/s.distance>.7)msg.push('後段上坡，預留臀腿力量');
+ if(!msg.length)msg.push(s.kind.id==='flat'?'易維持節奏，留意腳下':'以穩定出力為主，勿追平路配速');
+ return msg.slice(0,2).join('；');
+}
+function calc(){
+ if(!baseRoute)return;
+ clearError();const settings={flatPace:Number($('flatPace').value),vam:Number($('vam').value),effort:Number($('effort').value),downhill:Number($('downhill').value),segmentSize:Number($('segmentSize').value),stops:Number($('stops').value)};
+ if(!Number.isFinite(settings.flatPace)||settings.flatPace<3||settings.flatPace>25||!Number.isFinite(settings.stops)||settings.stops<0||settings.stops>600){showError('請輸入合理嘅配速（3–25 分鐘／km）及停留時間（0–600 分鐘）。');return;}
+ const p=baseRoute.sample,d=baseRoute.distance;
+ const times=[0];for(let i=1;i<p.length;i++){
+  if(p[i].pieceId!==p[i-1].pieceId){times[i]=times[i-1];continue;}
+  const delta=p[i].d-p[i-1].d,pace=paceFor((p[i].grade+p[i-1].grade)/2,p[i].d/d,settings);
+  times[i]=times[i-1]+delta/1000*pace;
+ }
+ segments=[];
+ for(const piece of baseRoute.pieces){
+  let first=piece.first;
+  while(first<piece.last){
+   const target=p[first].d+settings.segmentSize;
+   let last=first+1;
+   while(last<piece.last&&p[last].d<target-.001)last++;
+   const dist=p[last].d-p[first].d;
+   if(dist<=0)break;
+   let gain=0,loss=0,maxGrade=-Infinity,minGrade=Infinity,grades=[];
+   for(let k=first;k<=last;k++){
+    grades.push(p[k].grade);maxGrade=Math.max(maxGrade,p[k].grade);minGrade=Math.min(minGrade,p[k].grade);
+    if(k>first){const diff=p[k].smooth-p[k-1].smooth;if(diff>0)gain+=diff;else loss-=diff;}
+   }
+   const s={index:segments.length,pieceId:piece.id,start:p[first].d,end:p[last].d,first,last,dist,gain,loss,grade:100*(p[last].smooth-p[first].smooth)/dist,maxGrade,minGrade,grades,time:times[last]-times[first],totalTime:times[last],distance:d};
+   s.kind=classify(s);s.advice=detailFor(s);segments.push(s);first=last;
+  }
+ }
+ if(!segments.length){showError('冇足夠連續路段用作配速分析。');return;}
+ analysis={...baseRoute,settings,times,moving:times.at(-1),total:times.at(-1)+settings.stops+cpRows().reduce((n,c)=>n+c.stop,0)};
+ render();
+}
+function groupMuscles(kind){
+ switch(kind){
+ case'up':return {values:[86,86,75,58,62,58],advice:'上坡主要靠臀部伸髖、股四頭肌同小腿推進。陡坡可縮步幅、適時快行；軀幹保持穩定，唔好一開始就衝。'};
+ case'down':return {values:[96,61,70,65,70,86],advice:'下坡股四頭肌承受較多離心煞車負荷；腳踝穩定同軀幹控制同樣重要。縮短步幅、眼望前方落腳位，唔好硬衝。'};
+ case'rolling':return {values:[71,72,65,62,66,70],advice:'連續起伏容易反覆切換推進同煞車；上坡唔追速度，下坡以柔和落腳保留肌力。'};
+ default:return {values:[56,54,61,55,54,51],advice:'平緩路段以較自然嘅節奏穩定前進，保持步頻、肩膀放鬆，唔需要刻意加速追補上坡時間。'};
+ }
+}
+function routeSVG(){
+ const p=analysis.sample;const latMid=p.reduce((x,q)=>x+q.lat,0)/p.length;
+ const lonMin=Math.min(...p.map(q=>q.lon)),lonMax=Math.max(...p.map(q=>q.lon));const latMin=Math.min(...p.map(q=>q.lat)),latMax=Math.max(...p.map(q=>q.lat));
+ const xscale=Math.max((lonMax-lonMin)*Math.cos(rad(latMid)),.00001),yscale=Math.max(latMax-latMin,.00001);const sc=Math.min(640/xscale,245/yscale);
+ const w=xscale*sc,h=yscale*sc,left=(700-w)/2,top=(285-h)/2+10;
+ const xy=q=>[left+(q.lon-lonMin)*Math.cos(rad(latMid))*sc,top+(latMax-q.lat)*sc];
+ let content=`<svg viewBox="0 0 700 315" role="img" aria-label="分開顯示 GPX 每段連續軌跡；斷點之間不畫連線"><g stroke="#1b3539" stroke-width="1">`;
+ for(let x=80;x<700;x+=80)content+=`<path d="M${x} 0 V315"/>`;
+ for(let y=50;y<315;y+=50)content+=`<path d="M0 ${y} H700"/>`;
+ content+='</g>';
+ for(const s of segments){
+  const sub=p.slice(s.first,s.last+1),pts=sub.map(q=>xy(q).map(n=>n.toFixed(1)).join(',')).join(' '),highlight=s.index===selected;
+  content+=`<polyline data-seg="${s.index}" points="${pts}" fill="none" stroke="#061a1e" stroke-width="${highlight?12:10}" stroke-linecap="round" stroke-linejoin="round"/><polyline data-seg="${s.index}" points="${pts}" fill="none" stroke="${highlight?'#d1fa78':colors[s.kind.id]}" stroke-width="${highlight?6:4}" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer"/>`;
+ }
+ for(const g of analysis.gaps){
+  const a=xy(p[analysis.pieces[g.afterPiece].last]),b=xy(p[analysis.pieces[g.beforePiece].first]);
+  content+=`<circle cx="${a[0]}" cy="${a[1]}" r="6" fill="#ffbd6a" stroke="#061a1e" stroke-width="2"/><circle cx="${b[0]}" cy="${b[1]}" r="6" fill="none" stroke="#ff817b" stroke-width="3"/>`;
+ }
+ const first=xy(p[0]),last=xy(p.at(-1));
+ content+=`<circle cx="${first[0]}" cy="${first[1]}" r="7" fill="#62e7c0" stroke="#072128" stroke-width="3"/><circle cx="${last[0]}" cy="${last[1]}" r="7" fill="#ff817b" stroke="#072128" stroke-width="3"/><text x="14" y="22" fill="#a2bdbe" font-size="12">START ● 綠 ／ FINISH ● 紅 · 斷點圈標記（不連線）</text></svg>`;
+ $('routeBox').innerHTML=content;
+}
+function profileSVG(){
+ const p=analysis.sample,w=1000,h=316,x0=62,x1=978,y0=25,y1=267,lo=analysis.minEle-30,hi=analysis.peak+30;
+ const X=q=>x0+q.d/analysis.distance*(x1-x0),Y=q=>y1-(q.smooth-lo)/(hi-lo)*(y1-y0);
+ let out=`<svg viewBox="0 0 ${w} ${h}" role="img" aria-label="各連續路段的海拔剖面，斷點不連接">`;
+ for(let i=0;i<=4;i++){const y=y1-i/4*(y1-y0);out+=`<line x1="${x0}" y1="${y}" x2="${x1}" y2="${y}" stroke="#2c454b" stroke-dasharray="4 7"/><text x="${x0-9}" y="${y+4}" fill="#91aaaf" font-size="12" text-anchor="end">${Math.round(lo+i/4*(hi-lo))}m</text>`;}
+ for(let i=0;i<=5;i++){const d=analysis.distance*i/5,x=x0+i/5*(x1-x0);out+=`<text x="${x}" y="${y1+29}" fill="#91aaaf" font-size="12" text-anchor="middle">${fmt(d/1000,1)}k</text>`;}
+ for(const piece of analysis.pieces){
+  const part=p.slice(piece.first,piece.last+1),path=part.map((q,i)=>`${i===0?'M':'L'}${X(q).toFixed(1)},${Y(q).toFixed(1)}`).join(' ');
+  out+=`<path d="${path} L${X(part.at(-1))},${y1} L${X(part[0])},${y1} Z" fill="#62e7c0" opacity=".12"/>`;
+  out+=`<path d="${path}" stroke="#a5e7bd" stroke-width="3" fill="none" stroke-linejoin="round"/>`;
+ }
+ for(const s of segments){const x=X(p[s.first]),width=X(p[s.last])-x;out+=`<rect data-seg="${s.index}" x="${x}" y="${y0}" width="${Math.max(1,width)}" height="${y1-y0}" fill="${s.index===selected?'#d1fa78':colors[s.kind.id]}" fill-opacity="${s.index===selected?.16:.035}" style="cursor:pointer"/>`;}
+ for(const g of analysis.gaps){
+  const piece=analysis.pieces[g.afterPiece],next=analysis.pieces[g.beforePiece],x=X(p[piece.last]);
+  out+=`<path d="M${x} ${y0} V${y1}" stroke="#ff817b" stroke-width="2" stroke-dasharray="3 5"/><circle cx="${x}" cy="${Y(p[piece.last])}" r="4" fill="#ffbd6a"/><circle cx="${x}" cy="${Y(p[next.first])}" r="5" fill="none" stroke="#ff817b" stroke-width="2"/>`;
+ }
+ const mid=segments[selected],x=X(p[mid.first]),endX=X(p[mid.last]);out+=`<path d="M${x} ${y0}V${y1}M${endX} ${y0}V${y1}" stroke="#d1fa78" stroke-width="1.5" stroke-dasharray="4 5"/>`;
+ out+='</svg>';$('profileBox').innerHTML=out;
+}
+function renderMuscles(){
+ const s=segments[selected];if(!s)return;
+ const ms=groupMuscles(s.kind.muscle),names=['股四頭肌','臀肌群','小腿肌群','膕繩肌','核心穩定','腳踝穩定'];
+ $('selectedDescription').textContent=`${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km · ${s.kind.label} · ${fmt(s.grade,1)}%`;
+ $('muscleBars').innerHTML=names.map((n,i)=>`<div class="muscle-row"><span>${n}</span><div class="bar"><div class="bar-fill" style="width:${ms.values[i]}%"></div></div><span style="color:#adc6c5;text-align:right">${ms.values[i]}</span></div>`).join('');
+ $('muscleAdvice').textContent=ms.advice;
+}
+function renderRows(){
+ const rows=[];let previousPiece=-1;
+ for(const s of segments){
+  if(previousPiece>=0&&s.pieceId!==previousPiece){
+   const g=analysis.gaps.find(g=>g.beforePiece===s.pieceId);
+   if(g)rows.push(`<tr class="gap-row"><td colspan="9">⚠ 軌跡中斷：${gapType(g)}，兩端直線相距 ${fmt(g.meters/1000,2)} km；中間路程、爬升及耗時不計，後續累積數值只代表已知路段。</td></tr>`);
+  }
+  rows.push(`<tr data-seg="${s.index}" class="${s.index===selected?'active':''}" tabindex="0" aria-label="選擇 ${fmt(s.start/1000,2)} 至 ${fmt(s.end/1000,2)} 公里路段"><td>${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km</td><td>+${Math.round(s.gain)}m / −${Math.round(s.loss)}m</td><td>${s.grade>=0?'+':''}${fmt(s.grade,1)}%</td><td><span class="terrain-label ${s.kind.id}">${s.kind.label}</span></td><td>${s.kind.action}</td><td><b>${fmtPace(s.time/(s.dist/1000))}</b></td><td>${fmtTime(s.time)}</td><td>${fmtTime(s.totalTime)}</td><td>${s.advice}</td></tr>`);
+  previousPiece=s.pieceId;
+ }
+ $('segmentsBody').innerHTML=rows.join('');
+}
+function gapType(g){return g.reason==='jump'?'相鄰點跳距超過 2 km':g.reason==='invalid'?'原始點座標缺失或無效':'GPX trkseg／route 分段邊界';}
+function renderGapNotice(){
+ const node=$('gapNotice'),gaps=analysis.gaps;
+ if(!gaps.length){node.classList.add('hidden');node.textContent='';return;}
+ node.classList.remove('hidden');
+ node.replaceChildren();
+ const title=document.createElement('strong');title.textContent=`⚠ 偵測到 ${gaps.length} 個軌跡分界（其中 ${gaps.filter(g=>g.meters>2000).length} 個分界兩端相距 >2 km），只計算 ${analysis.pieces.length} 段連續路線`;node.appendChild(title);
+ const lead=document.createElement('p');lead.textContent='唔會以直線連接中斷點；以下距離、爬升、下降及時間只涵蓋 GPX 內已知軌跡，唔代表完整賽道，亦唔適合據此判斷 cut-off。';node.appendChild(lead);
+ const list=document.createElement('ol');
+ for(const g of gaps){const li=document.createElement('li');li.textContent=`已記錄 ${fmt(g.atDistance/1000,2)} km 處：${gapType(g)}；兩端直線距離 ${fmt(g.meters/1000,2)} km（${fmt(g.from.lat,5)}, ${fmt(g.from.lon,5)} → ${fmt(g.to.lat,5)}, ${fmt(g.to.lon,5)}）。`;list.appendChild(li);}
+ node.appendChild(list);
+ if(analysis.dropped||analysis.invalidCount){const note=document.createElement('p');note.textContent=`另外忽略 ${analysis.dropped} 個只有一點嘅碎片、${analysis.invalidCount} 個無效座標／海拔點。`;node.appendChild(note);}
+}
+function renderAlerts(){
+ const alerts=[];
+ for(const s of segments){
+  if(s.maxGrade>=18)alerts.push({s,type:'warning',label:'陡上斜',message:`${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km，局部約 +${fmt(s.maxGrade,0)}%：考慮 Power Hike、降低呼吸負荷。`,score:3+s.maxGrade/10});
+  if(s.minGrade<=-18)alerts.push({s,type:'warning',label:'陡落斜',message:`${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km，局部約 ${fmt(s.minGrade,0)}%：特別注意煞車負荷及腳踝控制。`,score:3+(-s.minGrade)/10});
+  if(s.gain>=80)alerts.push({s,type:'normal',label:'爬升密集',message:`${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km，上升約 ${Math.round(s.gain)}m：穩定出力，避免過早透支。`,score:2+s.gain/100});
+  if(s.loss>=100)alerts.push({s,type:'normal',label:'下降密集',message:`${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km，下降約 ${Math.round(s.loss)}m：減低大腿前側離心疲勞。`,score:2+s.loss/100});
+ }
+ // Keep warnings for different parts of the course; avoid duplicate segment warnings.
+ alerts.sort((a,b)=>b.score-a.score);const filtered=[],seen=new Set();for(const a of alerts){if(seen.has(a.s.index))continue;seen.add(a.s.index);filtered.push(a);if(filtered.length===7)break;}filtered.sort((a,b)=>a.s.start-b.s.start);
+ if(!filtered.length){const hard=[...segments].sort((a,b)=>(b.gain+b.loss)-(a.gain+a.loss)).slice(0,Math.min(3,segments.length));for(const s of hard)filtered.push({s,type:'normal',label:'留意起伏',message:`${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km：地形轉換時控制節奏，留意腳下。`});}
+ $('alerts').innerHTML=filtered.map(a=>`<div class="alert ${a.type}"><span class="pill">${a.label}</span><div><b>${fmt(a.s.start/1000,2)} km 起</b><p>${a.message}</p></div><button data-focus="${a.s.index}">查看 ↗</button></div>`).join('');
+}
+function renderStrategy(){
+ const {distance,gain,loss,moving,total,settings}=analysis,third=distance/3;
+ const thirds=[0,1,2].map(k=>{const arr=segments.filter(s=>(s.start+s.end)/2>=k*third&&(s.start+s.end)/2<(k+1)*third);return {up:arr.reduce((a,s)=>a+s.gain,0),down:arr.reduce((a,s)=>a+s.loss,0)};});
+ const stages=[
+  {subtitle:'0–33% · EARLY',title:'開局：唔好追平路配速',body:`前 ${fmt(third/1000,1)} km 約有 ${Math.round(thirds[0].up)}m 爬升。上坡以呼吸同出力控制，見到陡坡早啲轉 Power Hike，節省腿力。`},
+  {subtitle:'33–67% · MIDDLE',title:'中段：有節奏咁過山',body:`中段下降約 ${Math.round(thirds[1].down)}m。上下坡交替時保持平穩輸出，唔好為咗追回時間衝落斜；按熟悉補給策略進食飲水。`},
+  {subtitle:'67–100% · LATE',title:'尾段：保留力量完成',body:`尾段約有 ${Math.round(thirds[2].up)}m 爬升。密切留意步態同腳踝控制；若狀態良好先逐步加速，否則以安全完賽為先。`}
+ ];
+ $('strategies').innerHTML=stages.map(o=>`<div class="strategy"><small>${o.subtitle}</small><h3>${o.title}</h3><p>${o.body}</p></div>`).join('');
+ const h=total/60;
+ const cpStop=cpRows().reduce((n,c)=>n+c.stop,0);
+ $('nutrition').textContent=`${analysis.gaps.length?'警告：GPX 有軌跡中斷，以下只係可分析路段嘅局部估計，唔代表全程完賽時間。':''}預估移動 ${fmtTime(moving)} ＋ 預留停留 ${fmtTime(settings.stops)} ＋ CP 站內停留 ${fmtTime(cpStop)} ＝ 約 ${fmtTime(total)}。如賽事歷時較長，可依個人腸胃耐受及氣候安排碳水補給；一般參考每小時 30–60 g 碳水（有訓練者或更高），水份需按天氣、出汗量及補給站調整，避免強行按固定數值飲水。`;
+}
+function render(){
+ $('results').classList.remove('hidden');renderGapNotice();$('courseLabel').textContent=`${loadedName} · ${analysis.courseName} · ${analysis.sample.length.toLocaleString()} 個分析點`;
+ $('distanceLabel').textContent=analysis.gaps.length?'已知路段距離':'總距離';$('metricDistanceNote').textContent=analysis.gaps.length?'已排除軌跡斷點，並非整條賽道':'GPS 連續線段累加';$('timeLabel').textContent=analysis.gaps.length?'已知路段估時':'預估總時間';$('metricDistance').textContent=km(analysis.distance);$('metricAscent').textContent=`+${Math.round(analysis.gain)} m`;$('metricDescent').textContent=`−${Math.round(analysis.loss)} m`;$('metricTime').textContent=fmtTime(analysis.total);
+ const cpStop=cpRows().reduce((n,c)=>n+c.stop,0);
+ $('metricTimeDetail').textContent=`${analysis.gaps.length?'不包括中斷路程 · ':''}移動 ${fmtTime(analysis.moving)} ＋ 預留 ${fmtTime(analysis.settings.stops)} ＋ CP 停留 ${fmtTime(cpStop)}`;
+ $('metricPeak').textContent=`${Math.round(analysis.peak)} m`;
+ $('metricGrade').textContent=`100m 最陡約 +${fmt(analysis.maxGrade,0)}% / ${fmt(analysis.minGrade,0)}%`;
+ const longest=segments.reduce((a,b)=>b.gain>a.gain?b:a,segments[0]);
+ $('profileSummary').textContent=`分析重點：最大爬升集中分段 ${fmt(longest.start/1000,2)}–${fmt(longest.end/1000,2)} km（上升約 ${Math.round(longest.gain)}m）。全程攀升 ${Math.round(analysis.gain)}m、下降 ${Math.round(analysis.loss)}m。`;
+ $('qualityNote').textContent=`海拔品質：${analysis.quality}；各段獨立使用約 175m 平滑窗口，坡度為約 100m 水平距離嘅平均變化，短樓梯或陡坎可能無法識別。${analysis.gaps.length?'紅色虛線係軌跡中斷，橫軸只代表已知連續距離，並非完整賽道。':''}`;
+ routeSVG();profileSVG();renderRows();renderMuscles();renderAlerts();renderStrategy();renderCp();renderMap();
+}
+function cpRows(){return [...$('cpEditor').querySelectorAll('tr')].map(tr=>({name:tr.querySelector('[data-cp=name]').value.trim().slice(0,80),distance:tr.querySelector('[data-cp=distance]').value.trim()?Number(tr.querySelector('[data-cp=distance]').value)*1000:NaN,cutoff:tr.querySelector('[data-cp=cutoff]').value,stop:Number(tr.querySelector('[data-cp=stop]').value)||0,supply:tr.querySelector('[data-cp=supply]').value.trim().slice(0,160)})).filter(c=>c.name&&Number.isFinite(c.distance)&&c.distance>=0&&Number.isFinite(c.stop)&&c.stop>=0);}
+function addCp(){const tr=document.createElement('tr');for(const [key,type,placeholder] of [['name','text','CP 名稱'],['distance','number','公里'],['cutoff','datetime-local',''],['stop','number','分鐘'],['supply','text','水／食物／來源']]){const td=tr.insertCell(),input=document.createElement('input');input.dataset.cp=key;input.type=type;input.placeholder=placeholder;if(type==='number'){input.min='0';input.step=key==='distance'?'0.01':'1';}input.addEventListener('change',()=>{if(baseRoute)calc();else renderCp();});td.append(input);}const td=tr.insertCell(),button=document.createElement('button');button.className='btn ghost';button.textContent='刪除';button.type='button';button.onclick=()=>{tr.remove();if(baseRoute)calc();else renderCp();};td.append(button);$('cpEditor').append(tr);}
+function atDistance(d){const p=analysis.sample;if(d<=0)return p[0];if(d>=analysis.distance)return p.at(-1);let lo=0,hi=p.length-1;while(lo<hi){const mid=(lo+hi)>>1;if(p[mid].d<d)lo=mid+1;else hi=mid;}return p[lo];}
+function movingAt(d){const p=analysis.sample,q=atDistance(d),i=p.indexOf(q);if(i<=0)return 0;const a=p[i-1],t=q.d===a.d?1:clamp((d-a.d)/(q.d-a.d),0,1);return analysis.times[i-1]+(analysis.times[i]-analysis.times[i-1])*t;}
+function renderCp(){const node=$('cpResult');if(!analysis){node.textContent='載入賽道後計算 CP 到達時間。';return;}const rows=cpRows().sort((a,b)=>a.distance-b.distance);if(!rows.length){node.textContent='未輸入 CP。';return;}const start=$('raceStart').value,startMs=start?new Date(start+'+08:00').getTime():NaN;let priorStops=0;const table=document.createElement('table');table.className='feature-table';const head=table.createTHead().insertRow();for(const x of ['CP','預估抵達','cut-off buffer','站內停留','補給'])head.insertCell().textContent=x;const body=table.createTBody();for(const c of rows){const tr=body.insertRow(),valid=c.distance<=analysis.distance;const elapsed=valid?movingAt(c.distance)+analysis.settings.stops*c.distance/analysis.distance+priorStops:NaN;const arrival=Number.isFinite(startMs)&&valid?new Date(startMs+elapsed*60000):null;const cutoff=c.cutoff?new Date(c.cutoff+'+08:00'):null;const buffer=arrival&&cutoff&&Number.isFinite(cutoff.getTime())?(cutoff-arrival)/60000:NaN;const values=[`${c.name} · ${fmt(c.distance/1000,2)} km`,valid?(arrival?arrival.toLocaleString('zh-HK',{timeZone:'Asia/Hong_Kong',hour12:false}):`起跑後 ${fmtTime(elapsed)}`):'超出已知距離',Number.isFinite(buffer)?`${buffer>=0?'+':''}${fmtTime(Math.abs(buffer))}${buffer<0?' 超時':' 餘額'}`:'未設定',`${fmtTime(c.stop)}`,c.supply||'未填'];values.forEach((v,i)=>{const cell=tr.insertCell();cell.textContent=v;if(i===2&&Number.isFinite(buffer))cell.style.color=buffer<0?'var(--red)':'var(--lime)';});priorStops+=c.stop;}node.replaceChildren(table);if(analysis.gaps.length){const p=document.createElement('p');p.textContent='⚠ GPX 有斷點，CP 距離及 buffer 不能視為完整賽道預測。';node.append(p);}}
+function renderMap(){if(!analysis)return;const status=$('mapStatus');if(!window.L){status.textContent='Leaflet 未能載入；上方 GPX 走線圖仍可用。';return;}if(!map){map=L.map('terrainMap',{preferCanvas:true});map.on('click',e=>{if(!analysis)return;let nearest=0,best=Infinity;for(const s of segments){const p=analysis.sample[(s.first+s.last)>>1],d=hav(p,{lat:e.latlng.lat,lon:e.latlng.lng});if(d<best){best=d;nearest=s.index;}}if(best<350)focusSegment(nearest);});}mapRoutes.forEach(l=>map.removeLayer(l));mapMarkers.forEach(l=>map.removeLayer(l));const attrOSM='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap contributors</a>';const topo='Map data: '+attrOSM+', SRTM | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)';const style=$('mapStyle').value;if(mapBaseStyle!==style){if(mapBase)map.removeLayer(mapBase);mapBase=L.tileLayer(style==='topo'?'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png':'https://tile.openstreetmap.org/{z}/{x}/{y}.png',{subdomains:style==='topo'?'abc':'',maxZoom:style==='topo'?17:19,attribution:style==='topo'?topo:attrOSM}).addTo(map);mapBaseStyle=style;}mapRoutes=[];for(const s of segments){const coords=analysis.sample.slice(s.first,s.last+1).map(p=>[p.lat,p.lon]);const line=L.polyline(coords,{color:s.index===selected?'#d1fa78':colors[s.kind.id],weight:s.index===selected?6:4,opacity:.95}).addTo(map);line.on('click',()=>focusSegment(s.index));mapRoutes.push(line);}mapMarkers=[];const p=analysis.sample;for(const [q,label] of [[p[0],'起點'],[p.at(-1),'終點']])mapMarkers.push(L.circleMarker([q.lat,q.lon],{radius:7,color:'#07151a',fillColor:label==='起點'?'#62e7c0':'#ff817b',fillOpacity:1}).addTo(map).bindPopup(label));for(const cp of cpRows()){if(cp.distance>analysis.distance)continue;const q=atDistance(cp.distance),popup=document.createElement('span');popup.textContent=`${cp.name} · ${fmt(cp.distance/1000,2)} km`;mapMarkers.push(L.circleMarker([q.lat,q.lon],{radius:7,color:'#082226',fillColor:'#80b7ff',fillOpacity:1}).addTo(map).bindPopup(popup));}for(const n of [...noteRows(),...osmNotes]){if(!Number.isFinite(n.distance)||n.distance<0||n.distance*1000>analysis.distance)continue;const q=atDistance(n.distance*1000),popup=document.createElement("span");popup.textContent=`${n.source} · ${n.text}`;mapMarkers.push(L.circleMarker([q.lat,q.lon],{radius:5,color:"#092024",fillColor:"#d9a8ff",fillOpacity:1}).addTo(map).bindPopup(popup));}const bounds=L.latLngBounds(p.map(q=>[q.lat,q.lon]));if(mapRouteRef!==analysis.sample){map.fitBounds(bounds.pad(.08),{maxZoom:15});mapRouteRef=analysis.sample;}setTimeout(()=>map.invalidateSize(),50);status.textContent=`${style==='topo'?'OpenTopoMap 地形陰影':'OpenStreetMap 街道'} · 地圖點擊路線可選取分段。`;}
+function highlightMap(){if(!map||!mapRoutes.length)return;mapRoutes.forEach((line,i)=>line.setStyle({color:i===selected?'#d1fa78':colors[segments[i].kind.id],weight:i===selected?6:4}));if(mapRoutes[selected])mapRoutes[selected].bringToFront();}
+function noteRows(){return [...$('noteEditor').querySelectorAll('tr')].map(tr=>({source:tr.querySelector('[data-note=source]').value,distance:tr.querySelector('[data-note=distance]').value.trim()?Number(tr.querySelector('[data-note=distance]').value):NaN,text:tr.querySelector('[data-note=text]').value.trim().slice(0,240),url:tr.querySelector('[data-note=url]').value.trim().slice(0,500)})).filter(n=>n.text);}
+function addNote(source='跑者',distance='',content='',url=''){const tr=document.createElement('tr'),td=tr.insertCell(),sel=document.createElement('select');sel.dataset.note='source';for(const s of ['跑者','官方']){const o=document.createElement('option');o.value=s;o.textContent=s;sel.append(o);}sel.value=source;td.append(sel);for(const [key,type,value] of [['distance','number',distance],['text','text',content],['url','url',url]]){const cell=tr.insertCell(),input=document.createElement('input');input.dataset.note=key;input.type=type;input.value=value;if(key==='distance'){input.min='0';input.step='.01';}if(key==='url')input.placeholder='https:// 官方資料';if(key==='text')input.placeholder='實際路面／封路／樓梯';cell.append(input);}const last=tr.insertCell(),del=document.createElement('button');del.type='button';del.className='btn ghost';del.textContent='刪除';del.onclick=()=>{tr.remove();if(analysis)renderMap();};last.append(del);$('noteEditor').append(tr);}
+function nearestRouteDistance(lat,lon){let best=Infinity,distance=0;for(let i=0;i<analysis.sample.length;i+=Math.max(1,Math.floor(analysis.sample.length/4000))){const p=analysis.sample[i],d=hav(p,{lat,lon});if(d<best){best=d;distance=p.d;}}return {meters:best,distance};}
+async function readOsmTags(){if(!analysis){$('noteStatus').textContent='先載入賽道 GPX。';return;}const p=analysis.sample,lat=p.map(q=>q.lat),lon=p.map(q=>q.lon),south=Math.min(...lat),north=Math.max(...lat),west=Math.min(...lon),east=Math.max(...lon);if((north-south)*(east-west)>.025){$('noteStatus').textContent='賽道範圍太大；為保護公用 Overpass 服務，請分段查詢。';return;}const query=`[out:json][timeout:20];way[highway][surface](${south-.002},${west-.002},${north+.002},${east+.002});out tags geom;`;$('noteStatus').textContent='正查詢 OpenStreetMap 公用 Overpass…';try{const response=await fetch('https://overpass-api.de/api/interpreter',{method:'POST',body:'data='+encodeURIComponent(query),headers:{'Content-Type':'application/x-www-form-urlencoded'}});if(!response.ok)throw new Error(`HTTP ${response.status}`);const data=await response.json();osmNotes=[];for(const way of data.elements||[]){if(!way.geometry?.length)continue;let nearest={meters:Infinity};for(const q of way.geometry.filter((_,i)=>i%Math.max(1,Math.floor(way.geometry.length/20))===0)){const n=nearestRouteDistance(q.lat,q.lon);if(n.meters<nearest.meters)nearest=n;}if(nearest.meters>35)continue;const tags=way.tags||{},bits=['surface','smoothness','sac_scale','trail_visibility','incline','steps'].filter(k=>tags[k]).map(k=>`${k}=${tags[k]}`);if(!bits.length)continue;osmNotes.push({source:'OpenStreetMap',distance:nearest.distance/1000,text:bits.join(' · '),url:`https://www.openstreetmap.org/way/${way.id}`});if(osmNotes.length>=30)break;}renderOsmNotes();}catch(err){$('noteStatus').textContent=`OSM 查詢失敗：${err.message}。可自行加入人工／官方註記。`;}}
+function renderOsmNotes(){const node=$('noteStatus');node.replaceChildren();node.append(document.createTextNode(`找到 ${osmNotes.length} 條距離 GPX 約 35m 內嘅 OSM surface tags；只係附近線段，未經官方核實。`));for(const n of osmNotes){const p=document.createElement('p'),a=document.createElement('a');a.href=n.url;a.target='_blank';a.rel='noopener';a.textContent='來源 ↗';p.textContent=`${fmt(n.distance,2)} km：${n.text} · `;p.append(a);node.append(p);}renderMap();}
+function hktToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Hong_Kong',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());}
+async function fetchWeather(){if(!analysis){$('weatherStatus').textContent='先載入賽道 GPX。';return;}const date=$('raceStart').value.slice(0,10);if(!date){$('weatherStatus').textContent='先填寫起跑日期時間。';return;}const days=Math.round((Date.parse(date+'T00:00:00+08:00')-Date.parse(hktToday()+'T00:00:00+08:00'))/86400000);if(days<0||days>15){$('weatherStatus').textContent='賽日超出 Open-Meteo 可用預報期；天氣風險未知，請臨賽前再查。';weather=null;return;}const p=analysis.sample[0],params=new URLSearchParams({latitude:String(p.lat),longitude:String(p.lon),timezone:'Asia/Hong_Kong',forecast_days:'16',past_days:'1',daily:'temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,sunrise,sunset',hourly:'relative_humidity_2m'});$('weatherStatus').textContent='正讀取 Open-Meteo…';try{const response=await fetch('https://api.open-meteo.com/v1/forecast?'+params);if(!response.ok)throw new Error(`HTTP ${response.status}`);const data=await response.json(),i=data.daily?.time?.indexOf(date);if(i<0)throw new Error('API 未提供該日預報');const daily=data.daily,humid=(data.hourly?.relative_humidity_2m||[]).filter((_,j)=>data.hourly.time[j].startsWith(date)).filter(Number.isFinite);const meanHumid=humid.length?humid.reduce((a,b)=>a+b,0)/humid.length:NaN;const rain=daily.precipitation_sum[i],prev=i>0?daily.precipitation_sum[i-1]:NaN;const warnings=[];if(daily.temperature_2m_max[i]>=30)warnings.push('炎熱：留意中暑風險');if(daily.temperature_2m_min[i]<=12)warnings.push('寒冷：留意山頂風寒');if(meanHumid>=80)warnings.push('潮濕：散熱可能較差');if(rain>=5||prev>=5)warnings.push('賽日或前日有雨：路面可能濕滑');const confidence=days<=2?'中等':days<=6?'偏低':'低';weather={date,days,confidence,warnings,tempMax:daily.temperature_2m_max[i],tempMin:daily.temperature_2m_min[i],humidity:meanHumid,rain,prevRain:prev,sunrise:daily.sunrise[i],sunset:daily.sunset[i],rainProbability:daily.precipitation_probability_max[i]};$('weatherStatus').textContent=`${date} · 可信程度：${confidence}（距賽日 ${days} 日）\n${fmt(weather.tempMin,0)}–${fmt(weather.tempMax,0)}°C · 平均濕度 ${fmt(meanHumid,0)}% · 雨量 ${fmt(rain,1)} mm · 降雨概率最高 ${fmt(weather.rainProbability,0)}%\n日出 ${weather.sunrise?.slice(11)} · 日落 ${weather.sunset?.slice(11)}\n${warnings.length?warnings.join('；'):'未觸發閾值警告；仍需查看官方警告與即時天氣。'}`;}catch(err){weather=null;$('weatherStatus').textContent=`預報讀取失敗：${err.message}。天氣風險未知。`;}}
+function robustMedian(values){const sorted=values.sort((a,b)=>a-b),trim=Math.floor(sorted.length*.1),mid=sorted.slice(trim,sorted.length-trim);return mid[Math.floor(mid.length/2)];}
+function fitGrade(samples){if(samples.length<8)return {factor:1,slope:0};const meanX=samples.reduce((n,o)=>n+o.grade,0)/samples.length,meanY=samples.reduce((n,o)=>n+Math.log(o.ratio),0)/samples.length;let covariance=0,variance=0;for(const o of samples){covariance+=(o.grade-meanX)*(Math.log(o.ratio)-meanY);variance+=(o.grade-meanX)**2;}const slope=variance/samples.length>4?clamp(covariance/variance,-.035,.035):0;const factor=clamp(robustMedian(samples.map(o=>o.ratio*Math.exp(slope*(10-o.grade)))),.6,2.5);return {factor,slope};}
+async function calibrate(files){const up=[],down=[];let accepted=0,rejected=[];calibration={up:1,down:1,upSlope:0,downSlope:0,upCount:0,downCount:0};for(const file of [...files].slice(0,12)){try{if(file.size>18*1024*1024)throw new Error('檔案超過 18MB');const activity=prep(parseGpx(await file.text())),p=activity.sample,settings={flatPace:Number($('flatPace').value),vam:Number($('vam').value),effort:1,downhill:1};for(const piece of activity.pieces){for(let i=piece.first;i+4<=piece.last;i+=4){const a=p[i],b=p[i+4],dt=(b.time-a.time)/60000,dist=(b.d-a.d)/1000;if(!Number.isFinite(dt)||dt<=0||dist<.08)continue;const actual=dt/dist;if(actual<3||actual>45)continue;const grade=100*(b.smooth-a.smooth)/(b.d-a.d);if(Math.abs(grade)>35)continue;const base=paceFor(grade,0,settings),ratio=actual/base;if(ratio<.45||ratio>3.5)continue;if(grade>=3)up.push({grade,ratio});else if(grade<=-3)down.push({grade:-grade,ratio});}}accepted++;}catch(err){rejected.push(`${file.name}: ${err.message}`);}}const u=fitGrade(up),d=fitGrade(down);calibration={up:u.factor,down:d.factor,upSlope:u.slope,downSlope:d.slope,upCount:up.length,downCount:down.length};$('calibrationStatus').textContent=`分析 ${accepted} 個活動 · 上坡 ${up.length} 組：10% 坡度參考 ×${fmt(calibration.up,2)} · 落坡 ${down.length} 組：10% 坡度參考 ×${fmt(calibration.down,2)}。各方向按坡度回歸，最少 8 組先套用；倍率大於 1 代表比預設模型慢。${rejected.length?'\n忽略：'+rejected.join('；'):''}`;if(baseRoute)calc();}
+function focusSegment(index,scroll=false){if(!analysis||index<0||index>=segments.length)return;selected=index;routeSVG();profileSVG();renderRows();renderMuscles();highlightMap();if(scroll)$('selectedDescription').scrollIntoView({behavior:'smooth',block:'center'});}
+for(const id of ['routeBox','profileBox','segmentsBody'])$(id).addEventListener('click',e=>{const node=e.target.closest('[data-seg]');if(node)focusSegment(Number(node.dataset.seg));});
+$('segmentsBody').addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){const tr=e.target.closest('[data-seg]');if(tr){e.preventDefault();focusSegment(Number(tr.dataset.seg));}}});
+$('alerts').addEventListener('click',e=>{const b=e.target.closest('[data-focus]');if(b)focusSegment(Number(b.dataset.focus),true);});
+for(const id of ['flatPace','vam','effort','downhill','segmentSize','stops'])$(id).addEventListener('change',calc);
+$('historyFile').addEventListener('change',e=>{if(e.target.files?.length)calibrate(e.target.files);});
+$('clearCalibration').addEventListener('click',()=>{calibration={up:1,down:1,upSlope:0,downSlope:0,upCount:0,downCount:0};$('historyFile').value='';$('calibrationStatus').textContent='已清除校準，使用手動配速。';calc();});
+$('addCp').addEventListener('click',addCp);
+$('addNote').addEventListener('click',()=>addNote());
+$('noteEditor').addEventListener('change',()=>{if(analysis)renderMap();});
+$('osmTags').addEventListener('click',readOsmTags);
+$('weatherBtn').addEventListener('click',fetchWeather);
+$('mapStyle').addEventListener('change',renderMap);
+$('raceStart').addEventListener('change',()=>{renderCp();weather=null;$('weatherStatus').textContent='起跑日期已更新；請重新讀取賽日預報。';});
+$('chooseBtn').addEventListener('click',()=>$('gpxFile').click());
+$('gpxFile').addEventListener('change',e=>{if(e.target.files[0])loadFile(e.target.files[0]);});
+const zone=$('uploadZone');
+for(const name of ['dragenter','dragover'])zone.addEventListener(name,e=>{e.preventDefault();zone.classList.add('over')});
+for(const name of ['dragleave','drop'])zone.addEventListener(name,e=>{e.preventDefault();zone.classList.remove('over')});
+zone.addEventListener('drop',e=>{const f=e.dataTransfer?.files?.[0];if(f)loadFile(f);});
+async function loadFile(file){clearError();try{if(file.size>18*1024*1024)throw new Error('GPX 檔案大於 18MB，請先簡化資料。');if(!/\.gpx$/i.test(file.name))throw new Error('請選擇 .gpx 檔案。');const xml=await file.text();const parsed=parseGpx(xml);const next=prep(parsed);baseRoute=next;loadedName=file.name;$('filename').textContent=`✓ 已讀取：${file.name}`;selected=0;calc();$('results').scrollIntoView({behavior:'smooth',block:'start'});}catch(err){baseRoute=null;analysis=null;segments=[];$('results').classList.add('hidden');$('filename').textContent='GPX 載入失敗，請檢查檔案';showError(err.message||'GPX 讀取失敗。');}}
+function demo(){const pts=[];const total=14400,step=40;
+ const knots=[[0,95],[1500,195],[3000,610],[3800,580],[5200,325],[6300,330],[7400,750],[8200,810],[9800,410],[11000,480],[12600,160],[14400,110]];
+ // Synthetic path intentionally not tied to any real trail.
+ for(let d=0;d<=total;d+=step){let k=0;while(k<knots.length-2&&d>knots[k+1][0])k++;const t=(d-knots[k][0])/(knots[k+1][0]-knots[k][0]);const elev=knots[k][1]+(knots[k+1][1]-knots[k][1])*t+Math.sin(d/155)*7;
+ const ang=.72*Math.sin(d/2300)+.32*Math.cos(d/950);const prev=pts.at(-1);const lat=(prev?prev.lat:22.3)+Math.cos(ang)*(prev?step:0)/111000;const lon=(prev?prev.lon:114.15)+Math.sin(ang)*(prev?step:0)/(111000*Math.cos(rad(lat)));pts.push({lat,lon,ele:elev});}
+ baseRoute=prep({parts:[{points:pts,breakBefore:null}],gaps:[],jumpCount:0,dropped:0,invalidCount:0,courseName:'模擬 14 km 山賽（非真實路線）',quality:'100% 模擬海拔'});loadedName='demo-trail.gpx';selected=0;$('filename').textContent='✓ 已載入模擬賽道（唔係真實路線）';calc();$('results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('demoBtn').addEventListener('click',demo);
+$('csvBtn').addEventListener('click',()=>{
+ if(!segments.length)return;
+ const header=['記錄類型','連續軌跡編號','開始已知公里','結束已知公里','爬升米','下降米','平均坡度%','路段類型','建議動作','配速 min/km','段時間 分鐘','累積已知移動分鐘','備註'];
+ const rows=[];let previousPiece=-1;
+ for(const s of segments){
+  if(previousPiece>=0&&s.pieceId!==previousPiece){
+   const g=analysis.gaps.find(g=>g.beforePiece===s.pieceId);
+   if(g)rows.push(['軌跡中斷','',fmt(g.atDistance/1000,3),'','','','',gapType(g),'','','','',`兩端直線距離 ${fmt(g.meters/1000,3)} km；未有真實路線及耗時資料；不計入總距離`]);
+  }
+  rows.push(['有效路段',s.pieceId+1,fmt(s.start/1000,3),fmt(s.end/1000,3),fmt(s.gain,1),fmt(s.loss,1),fmt(s.grade,2),s.kind.label,s.kind.action,fmt(s.time/(s.dist/1000),2),fmt(s.time,2),fmt(s.totalTime,2),s.advice]);
+  previousPiece=s.pieceId;
+ }
+ const q=x=>'"'+String(x).replaceAll('"','""')+'"';
+ const csv='\uFEFF'+[header,...rows].map(row=>row.map(q).join(',')).join('\r\n');
+ const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='trail_pacing_segments.csv';document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+});
+$('printBtn').addEventListener('click',()=>window.print());
+})();
+</script>
+</body>
+</html>
