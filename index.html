@@ -39,6 +39,8 @@
         <div class="field"><label for="flatPace">平緩山路配速（分鐘／km）</label><input id="flatPace" type="number" value="7" min="3" max="25" step="0.25"/><div class="hint">例：7.5 即 7:30/km，唔係馬路配速</div></div>
         <div class="field"><label for="vam">陡坡 Power Hike 爬升能力</label><select id="vam"><option value="350">350 m/h — 保守</option><option value="500" selected>500 m/h — 一般</option><option value="700">700 m/h — 熟練</option><option value="900">900 m/h — 強</option><option value="custom">自訂 m/h</option></select><div id="vamCustomWrap" class="hidden" style="margin-top:10px"><label for="vamCustom">自訂垂直爬升（m/h）</label><input id="vamCustom" type="number" min="100" max="2000" step="10" placeholder="例如 600" /></div><div class="hint">VAM 係每小時垂直爬升米數。局部坡度達 14% 先用「爬升米 ÷ VAM × 60」作基準下限；估時再計策略、疲勞及個人校準。</div></div>
         <div class="field"><label for="weight">體重連裝備（kg，計功率用）</label><input id="weight" type="number" min="30" max="250" step="0.5" placeholder="例如 70"/><div class="hint">選填。未輸入就唔顯示瓦數；體重只影響功率，唔會改變估算時間。</div></div>
+        <div class="field"><label for="thresholdPower">跑步閾值功率 FTP／CP（W）</label><input id="thresholdPower" type="number" min="50" max="1000" step="1" placeholder="例如 280"/><div class="hint">選填，填同一跑步功率裝置嘅閾值；唔適用單車 FTP。</div></div>
+        <div class="field"><label for="flatMeasuredPower">平緩路實測功率（W）</label><input id="flatMeasuredPower" type="number" min="50" max="1000" step="1" placeholder="例如以目前平緩配速跑出 260 W"/><div class="hint">同一裝置、以左上方平緩配速跑約 10–20 分鐘嘅平均功率。用嚟校正模型瓦數尺度；同時填 FTP／CP 先顯示比例。</div></div>
         <div class="field"><label for="effort">比賽策略</label><select id="effort"><option value="1.12">保守完賽</option><option value="1" selected>均衡配速</option><option value="0.93">積極配速</option></select></div>
         <div class="field"><label for="downhill">落斜技術</label><select id="downhill"><option value="1.18">初階：慢落更安全</option><option value="1" selected>一般</option><option value="0.90">熟練</option></select></div>
         <div class="field"><label for="segmentSize">分段距離</label><select id="segmentSize"><option value="250">每 250 m</option><option value="500" selected>每 500 m</option><option value="1000">每 1 km</option><option value="2000">每 2 km</option></select></div>
@@ -73,7 +75,7 @@
       <section class="card"><div class="section-head"><h2>值得注意嘅位置</h2><span class="subtext">只按 GPX 坡度推斷</span></div><div id="alerts" class="alert-list"></div><p class="tip">陡坡提示要求坡度達 ±18% 嘅距離累計至少 50m，並佔分段約 12%；相鄰同類路段會合併。此為篩選規則，唔代表實際路面或必須轉快行。</p></section>
       <section class="card"><div class="section-head"><h2>肌肉負荷參考</h2><span class="subtext">按分段選取更新</span></div><div id="selectedDescription" style="font-size:13px;color:var(--lime)">未選擇路段</div><div class="muscle" id="muscleBars"></div><div class="micro" id="muscleAdvice"></div><p class="tip">百分比係「相對負荷提示」，唔係實測肌電數據；個人體能、跑姿、裝備同地面會改變結果。</p></section>
     </div>
-    <section class="card" style="margin-bottom:16px"><div class="section-head"><h2>逐段配速同操作建議</h2><span class="subtext">點擊任何一行，連動路線、海拔同肌肉提醒</span></div><div class="table-wrap"><table class="segments-table"><thead><tr><th>距離區間</th><th>爬升 / 下降</th><th>平均坡度</th><th>地形</th><th>建議動作</th><th>估算配速</th><th>參考功率</th><th>段時間</th><th>累積時間*</th><th>約到達時間（香港）</th><th>要注意</th></tr></thead><tbody id="segmentsBody"></tbody></table></div><p class="tip">* 累積時間只計移動；約到達時間另加按距離分配嘅預留停留，以及到達該段終點前已經過嘅 CP 站內停留。先填起跑時間先會顯示；如 GPX 有斷點，時間只反映已知路段。配速係按局部坡度、策略、疲勞及個人校準估算。參考功率屬簡化模型，唔係手錶／功率計實測值。</p></section>
+    <section class="card" style="margin-bottom:16px"><div class="section-head"><h2>逐段配速同操作建議</h2><span class="subtext">點擊任何一行，連動路線、海拔同肌肉提醒</span></div><div class="table-wrap"><table class="segments-table"><thead><tr><th>距離區間</th><th>爬升 / 下降</th><th>平均坡度</th><th>地形</th><th>建議動作</th><th>估算配速</th><th>參考功率／FTP</th><th>段時間</th><th>累積時間*</th><th>約到達時間（香港）</th><th>要注意</th></tr></thead><tbody id="segmentsBody"></tbody></table></div><p class="tip">* 累積時間只計移動；約到達時間另加按距離分配嘅預留停留，以及到達該段終點前已經過嘅 CP 站內停留。先填起跑時間先會顯示；如 GPX 有斷點，時間只反映已知路段。配速係按局部坡度、策略、疲勞及個人校準估算。功率屬簡化模型；即使用平緩路實測功率校正，%FTP 仍只係粗略提示，唔適合直接用作訓練區間或安全上限。</p></section>
     <section class="card"><div class="section-head"><h2>比賽部署</h2><span class="subtext">前、中、後段分配體力</span></div><div class="strategy-grid" id="strategies"></div><p class="summary-text" id="nutrition"></p><div class="notice">重要：GPX 唔能夠判斷碎石、樓梯、密林、濕滑、日照、封路或補給站位置。賽前必須核對官方賽道資訊、天氣及 cut-off；肌肉與補給提示屬一般運動資訊，個人需要差異好大。</div></section>
   </div>
 </main>
@@ -207,6 +209,11 @@ function modelPower(weight,dist,gain,minutes){
  if(!Number.isFinite(weight)||!Number.isFinite(minutes)||minutes<=0)return null;
  return weight*(dist+9.81*gain)/(minutes*60);
 }
+function powerText(power,settings){
+ if(power===null)return'–';
+ const watts=`${Math.round(power)} W`;
+ return settings.flatMeasuredPower!==null&&settings.thresholdPower!==null?`${watts} · 約 ${Math.round(power/settings.thresholdPower*100)}% FTP/CP`:watts;
+}
 function readVam(){return Number($('vam').value==='custom'?$('vamCustom').value:$('vam').value);}
 function validVam(value){return Number.isFinite(value)&&value>=100&&value<=2000;}
 function classify(s){
@@ -233,10 +240,15 @@ function detailFor(s){
 }
 function calc(){
  if(!baseRoute)return;
- clearError();const settings={flatPace:Number($('flatPace').value),vam:readVam(),effort:Number($('effort').value),downhill:Number($('downhill').value),segmentSize:Number($('segmentSize').value),stops:Number($('stops').value),weight:$('weight').value.trim()?Number($('weight').value):null};
+ clearError();const settings={flatPace:Number($('flatPace').value),vam:readVam(),effort:Number($('effort').value),downhill:Number($('downhill').value),segmentSize:Number($('segmentSize').value),stops:Number($('stops').value),weight:$('weight').value.trim()?Number($('weight').value):null,thresholdPower:$('thresholdPower').value.trim()?Number($('thresholdPower').value):null,flatMeasuredPower:$('flatMeasuredPower').value.trim()?Number($('flatMeasuredPower').value):null};
  if(!Number.isFinite(settings.flatPace)||settings.flatPace<3||settings.flatPace>25||!Number.isFinite(settings.stops)||settings.stops<0||settings.stops>600){showError('請輸入合理嘅配速（3–25 分鐘／km）及停留時間（0–600 分鐘）。');return;}
  if(!validVam(settings.vam)){showError('請輸入 100–2000 m/h 嘅自訂爬升能力。');return;}
  if(settings.weight!==null&&(!Number.isFinite(settings.weight)||settings.weight<30||settings.weight>250)){showError('體重連裝備請輸入 30–250 kg，或者留空。');return;}
+ if(settings.thresholdPower!==null&&(!Number.isFinite(settings.thresholdPower)||settings.thresholdPower<50||settings.thresholdPower>1000)){showError('跑步 FTP／CP 請輸入 50–1000 W，或者留空。');return;}
+ if(settings.flatMeasuredPower!==null&&(!Number.isFinite(settings.flatMeasuredPower)||settings.flatMeasuredPower<50||settings.flatMeasuredPower>1000)){showError('平緩路實測功率請輸入 50–1000 W，或者留空。');return;}
+ if(settings.flatMeasuredPower!==null&&settings.weight===null){showError('要用實測功率校正模型，請同時輸入體重連裝備。');return;}
+ const flatModelPower=modelPower(settings.weight,1000,0,settings.flatPace);
+ settings.powerScale=settings.flatMeasuredPower===null?1:settings.flatMeasuredPower/flatModelPower;
  const p=baseRoute.sample,d=baseRoute.distance;
  const times=[0];for(let i=1;i<p.length;i++){
   if(p[i].pieceId!==p[i-1].pieceId){times[i]=times[i-1];continue;}
@@ -258,12 +270,13 @@ function calc(){
     if(k>first){const diff=p[k].smooth-p[k-1].smooth,delta=p[k].d-p[k-1].d,localGrade=(p[k].grade+p[k-1].grade)/2;if(diff>0)gain+=diff;else loss-=diff;if(localGrade>=18)steepUpMeters+=delta;if(localGrade<=-18)steepDownMeters+=delta;}
    }
    const s={index:segments.length,pieceId:piece.id,start:p[first].d,end:p[last].d,first,last,dist,gain,loss,steepUpMeters,steepDownMeters,grade:100*(p[last].smooth-p[first].smooth)/dist,maxGrade,minGrade,grades,time:times[last]-times[first],totalTime:times[last],distance:d};
-   s.kind=classify(s);s.advice=detailFor(s);s.power=modelPower(settings.weight,s.dist,s.gain,s.time);segments.push(s);first=last;
+   s.kind=classify(s);s.advice=detailFor(s);const rawPower=modelPower(settings.weight,s.dist,s.gain,s.time);s.power=rawPower===null?null:rawPower*settings.powerScale;segments.push(s);first=last;
   }
  }
  if(!segments.length){showError('冇足夠連續路段用作配速分析。');return;}
  selected=clamp(selected,0,segments.length-1);
- analysis={...baseRoute,settings,times,moving:times.at(-1),total:times.at(-1)+settings.stops+cpRows().reduce((n,c)=>n+c.stop,0),power:modelPower(settings.weight,baseRoute.distance,baseRoute.gain,times.at(-1))};
+ const rawTotalPower=modelPower(settings.weight,baseRoute.distance,baseRoute.gain,times.at(-1));
+ analysis={...baseRoute,settings,times,moving:times.at(-1),total:times.at(-1)+settings.stops+cpRows().reduce((n,c)=>n+c.stop,0),power:rawTotalPower===null?null:rawTotalPower*settings.powerScale};
  render();
 }
 function groupMuscles(kind){
@@ -368,7 +381,7 @@ function renderRows(){
    if(g)rows.push(`<tr class="gap-row"><td colspan="11">⚠ 軌跡中斷：${gapType(g)}，兩端直線相距 ${fmt(g.meters/1000,2)} km；中間路程、爬升及耗時不計，後續累積數值只代表已知路段。</td></tr>`);
   }
   const arrival=Number.isFinite(startMs)?hkClock(startMs+arrivalElapsedAt(s.end,cps)*60000):'先填起跑時間';
-  rows.push(`<tr data-seg="${s.index}" class="${s.index===selected?'active':''}" tabindex="0" aria-label="選擇 ${fmt(s.start/1000,2)} 至 ${fmt(s.end/1000,2)} 公里路段"><td>${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km</td><td>+${Math.round(s.gain)}m / −${Math.round(s.loss)}m</td><td>${s.grade>=0?'+':''}${fmt(s.grade,1)}%</td><td><span class="terrain-label ${s.kind.id}">${s.kind.label}</span></td><td>${s.kind.action}</td><td><b>${fmtPace(s.time/(s.dist/1000))}</b></td><td>${s.power===null?'–':`${Math.round(s.power)} W`}</td><td>${fmtTime(s.time)}</td><td>${fmtTime(s.totalTime)}</td><td>${arrival}</td><td>${s.advice}</td></tr>`);
+  rows.push(`<tr data-seg="${s.index}" class="${s.index===selected?'active':''}" tabindex="0" aria-label="選擇 ${fmt(s.start/1000,2)} 至 ${fmt(s.end/1000,2)} 公里路段"><td>${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km</td><td>+${Math.round(s.gain)}m / −${Math.round(s.loss)}m</td><td>${s.grade>=0?'+':''}${fmt(s.grade,1)}%</td><td><span class="terrain-label ${s.kind.id}">${s.kind.label}</span></td><td>${s.kind.action}</td><td><b>${fmtPace(s.time/(s.dist/1000))}</b></td><td>${powerText(s.power,analysis.settings)}</td><td>${fmtTime(s.time)}</td><td>${fmtTime(s.totalTime)}</td><td>${arrival}</td><td>${s.advice}</td></tr>`);
   previousPiece=s.pieceId;
  }
  $('segmentsBody').innerHTML=rows.join('');
@@ -450,7 +463,7 @@ function renderStrategy(){
 }
 function renderProfileSummary(){
  const s=segments[selected];if(!s)return;
- $('profileSummary').textContent=`已選路段 ${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km：${s.kind.label}，爬升 ${Math.round(s.gain)}m、下降 ${Math.round(s.loss)}m，平均坡度 ${s.grade>=0?'+':''}${fmt(s.grade,1)}%，估算移動 ${fmtTime(s.time)}（${fmtPace(s.time/(s.dist/1000))}）${s.power===null?'':`，參考功率 ${Math.round(s.power)} W（${fmt(s.power/analysis.settings.weight,1)} W/kg）`}。${s.advice}。`;
+ $('profileSummary').textContent=`已選路段 ${fmt(s.start/1000,2)}–${fmt(s.end/1000,2)} km：${s.kind.label}，爬升 ${Math.round(s.gain)}m、下降 ${Math.round(s.loss)}m，平均坡度 ${s.grade>=0?'+':''}${fmt(s.grade,1)}%，估算移動 ${fmtTime(s.time)}（${fmtPace(s.time/(s.dist/1000))}）${s.power===null?'':`，參考功率 ${powerText(s.power,analysis.settings)}（${fmt(s.power/analysis.settings.weight,1)} W/kg）`}。${s.advice}。`;
 }
 function render(){
  $('results').classList.remove('hidden');renderGapNotice();$('courseLabel').textContent=`${loadedName} · ${analysis.courseName} · ${analysis.sample.length.toLocaleString()} 個分析點`;
@@ -460,7 +473,7 @@ function render(){
  $('metricPeak').textContent=`${Math.round(analysis.peak)} m`;
  $('metricGrade').textContent=`100m 最陡約 +${fmt(analysis.maxGrade,0)}% / ${fmt(analysis.minGrade,0)}%`;
  $('metricPower').textContent=analysis.power===null?'–':`${Math.round(analysis.power)} W`;
- $('metricPowerDetail').textContent=analysis.power===null?'輸入體重連裝備後計算':`${fmt(analysis.power/analysis.settings.weight,1)} W/kg · 僅計移動時間`;
+ $('metricPowerDetail').textContent=analysis.power===null?'輸入體重連裝備後計算':`${analysis.settings.flatMeasuredPower!==null&&analysis.settings.thresholdPower!==null?`約 ${Math.round(analysis.power/analysis.settings.thresholdPower*100)}% FTP/CP · `:''}${fmt(analysis.power/analysis.settings.weight,1)} W/kg · ${analysis.settings.flatMeasuredPower!==null?'平緩路功率已校正 · ':''}僅計移動時間`;
  renderProfileSummary();
  $('qualityNote').textContent=`海拔品質：${analysis.quality}；各段獨立使用約 175m 平滑窗口，坡度為約 100m 水平距離嘅平均變化，短樓梯或陡坎可能無法識別。${analysis.gaps.length?'紅色虛線係軌跡中斷，橫軸只代表已知連續距離，並非完整賽道。':''}`;
  routeSVG();profileSVG();renderRows();renderMuscles();renderAlerts();renderStrategy();renderCp();
@@ -531,7 +544,7 @@ function toggleVamCustom(){$('vamCustomWrap').classList.toggle('hidden',$('vam')
 $('vam').addEventListener('change',()=>{toggleVamCustom();calc();});
 $('vamCustom').addEventListener('change',calc);
 toggleVamCustom();
-for(const id of ['flatPace','effort','downhill','segmentSize','stops','weight'])$(id).addEventListener('change',calc);
+for(const id of ['flatPace','effort','downhill','segmentSize','stops','weight','thresholdPower','flatMeasuredPower'])$(id).addEventListener('change',calc);
 $('historyFile').addEventListener('change',e=>{if(e.target.files?.length)calibrate(e.target.files);});
 $('clearCalibration').addEventListener('click',()=>{calibration={up:1,down:1,upSlope:0,downSlope:0,upCount:0,downCount:0};$('historyFile').value='';$('calibrationStatus').textContent='已清除校準，使用手動配速。';calc();});
 $('addCp').addEventListener('click',addCp);
@@ -556,14 +569,14 @@ function demo(){const pts=[];const total=14400,step=40;
 $('demoBtn').addEventListener('click',demo);
 $('csvBtn').addEventListener('click',()=>{
  if(!segments.length)return;
- const header=['記錄類型','連續軌跡編號','開始已知公里','結束已知公里','爬升米','下降米','平均坡度%','路段類型','建議動作','配速 min/km','段時間 分鐘','累積已知移動分鐘','備註'];
+ const header=['記錄類型','連續軌跡編號','開始已知公里','結束已知公里','爬升米','下降米','平均坡度%','路段類型','建議動作','配速 min/km','參考功率 W','模型功率佔跑步 FTP/CP %','段時間 分鐘','累積已知移動分鐘','備註'];
  const rows=[];let previousPiece=-1;
  for(const s of segments){
   if(previousPiece>=0&&s.pieceId!==previousPiece){
    const g=analysis.gaps.find(g=>g.beforePiece===s.pieceId);
-   if(g)rows.push(['軌跡中斷','',fmt(g.atDistance/1000,3),'','','','',gapType(g),'','','','',`兩端直線距離 ${fmt(g.meters/1000,3)} km；未有真實路線及耗時資料；不計入總距離`]);
+   if(g)rows.push(['軌跡中斷','',fmt(g.atDistance/1000,3),'','','','',gapType(g),'','','','','','',`兩端直線距離 ${fmt(g.meters/1000,3)} km；未有真實路線及耗時資料；不計入總距離`]);
   }
-  rows.push(['有效路段',s.pieceId+1,fmt(s.start/1000,3),fmt(s.end/1000,3),fmt(s.gain,1),fmt(s.loss,1),fmt(s.grade,2),s.kind.label,s.kind.action,fmt(s.time/(s.dist/1000),2),fmt(s.time,2),fmt(s.totalTime,2),s.advice]);
+  rows.push(['有效路段',s.pieceId+1,fmt(s.start/1000,3),fmt(s.end/1000,3),fmt(s.gain,1),fmt(s.loss,1),fmt(s.grade,2),s.kind.label,s.kind.action,fmt(s.time/(s.dist/1000),2),s.power===null?'':fmt(s.power,1),s.power!==null&&analysis.settings.thresholdPower!==null&&analysis.settings.flatMeasuredPower!==null?fmt(s.power/analysis.settings.thresholdPower*100,1):'',fmt(s.time,2),fmt(s.totalTime,2),s.advice]);
   previousPiece=s.pieceId;
  }
  const q=x=>'"'+String(x).replaceAll('"','""')+'"';
